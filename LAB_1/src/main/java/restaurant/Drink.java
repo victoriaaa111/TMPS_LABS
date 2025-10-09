@@ -8,6 +8,11 @@ public class Drink extends MenuItem {
         this.alcoholic = alcoholic;
     }
 
+    @Override
+    public String getDescription() {
+        return getName() + " - $" + getPrice() + (alcoholic ? " (Alcoholic)" : "");
+    }
+
     public boolean isAlcoholic() {
         return alcoholic;
     }

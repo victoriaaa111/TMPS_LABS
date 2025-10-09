@@ -8,6 +8,11 @@ public class Food extends MenuItem{
         this.vegetarian = vegetarian;
     }
 
+    @Override
+    public String getDescription() {
+        return getName() + " - $" + getPrice() + (vegetarian ? " (Vegetarian)" : "");
+    }
+
     public boolean isVegetarian() {
         return vegetarian;
     }
