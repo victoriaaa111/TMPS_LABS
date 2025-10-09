@@ -105,7 +105,30 @@ public class RestaurantMain {
         double total = calculator.calculateTotal(order, discountCode);
         System.out.println("Final total: lei " + total);
 
+        System.out.println("\n Select a payment method: 1.Cash, 2.Card");
 
+        while(true){
+            if (!sc.hasNextInt()) {
+                System.out.println("\n Select a payment method: 1.Cash, 2.Card");
+                sc.nextLine(); // clear invalid input
+                continue;
+            }
+            int payChoice = sc.nextInt();
+            switch (payChoice) {
+                case 1 -> {
+                    PaymentMethod payment = new CashPayment();
+                    payment.pay(total);
+                    return;
+                }
+                case 2 -> {
+                    PaymentMethod payment = new CardPayment();
+                    payment.pay(total);
+                    return;
+                }
+                default -> System.out.println("Invalid choice. Please try again.");
+            }
+
+        }
 
     }
 }
