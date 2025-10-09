@@ -10,7 +10,7 @@ public class MenuItem {
     }
 
     public String getDescription() {
-        return name + " - $" + price;
+        return name + " - lei " + price;
     }
 
     public String getName() {

@@ -10,7 +10,7 @@ public class Food extends MenuItem{
 
     @Override
     public String getDescription() {
-        return getName() + " - $" + getPrice() + (vegetarian ? " (Vegetarian)" : "");
+        return getName() + " - lei " + getPrice() + (vegetarian ? " (Vegetarian)" : "");
     }
 
     public boolean isVegetarian() {

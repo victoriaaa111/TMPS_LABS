@@ -10,7 +10,7 @@ public class Drink extends MenuItem {
 
     @Override
     public String getDescription() {
-        return getName() + " - $" + getPrice() + (alcoholic ? " (Alcoholic)" : "");
+        return getName() + " - lei " + getPrice() + (alcoholic ? " (Alcoholic)" : "");
     }
 
     public boolean isAlcoholic() {
