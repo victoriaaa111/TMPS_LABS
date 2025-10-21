@@ -11,22 +11,23 @@ public class CoffeeShopConfig {
     private int maxExtrasPerDrink;
     private Set<String> loyaltyMembers;
     private double loyaltyDiscount;
+    private double shotPrice;
 
-    // private constructor prevents instantiation from other classes
+    // Private constructor prevents instantiation from other classes
     private CoffeeShopConfig() {
         this.shopName = "Victoria's TMPS Coffee Shop";
         this.taxRate = 0.08;
         this.loyaltyProgramEnabled = true;
-        this.maxExtrasPerDrink = 5;
+        this.maxExtrasPerDrink = 3;
         this.loyaltyMembers = new HashSet<>();
-        this.loyaltyDiscount = 0.10;
+        this.loyaltyDiscount = 0.10; // 10% discount
+        this.shotPrice = 0.50;
 
-        // pre-populate with some test members
+        // Pre-populate with some test members
         loyaltyMembers.add("068738282");
-        loyaltyMembers.add("060252563");
     }
 
-    // thread-safe singleton instance retrieval
+    // Thread-safe singleton instance retrieval
     public static synchronized CoffeeShopConfig getInstance() {
         if (instance == null) {
             instance = new CoffeeShopConfig();
@@ -35,17 +36,13 @@ public class CoffeeShopConfig {
     }
 
     public String getShopName() { return shopName; }
-
     public double getTaxRate() { return taxRate; }
-
     public boolean isLoyaltyProgramEnabled() { return loyaltyProgramEnabled; }
-
     public int getMaxExtrasPerDrink() { return maxExtrasPerDrink; }
-
     public double getLoyaltyDiscount() { return loyaltyDiscount; }
+    public double getShotPrice() { return shotPrice; }
 
     public void setShopName(String shopName) { this.shopName = shopName; }
-
     public void setTaxRate(double taxRate) { this.taxRate = taxRate; }
 
     public boolean isMember(String phoneNumber) {
@@ -54,7 +51,7 @@ public class CoffeeShopConfig {
 
     public void addMember(String phoneNumber) {
         loyaltyMembers.add(phoneNumber);
-        System.out.println("Yay!! Successfully enrolled! Your number: " + phoneNumber);
+        System.out.println("Yayy!!! Successfully enrolled! Your number: " + phoneNumber);
     }
 
     public double applyLoyaltyDiscount(double price) {
@@ -68,6 +65,6 @@ public class CoffeeShopConfig {
 
     public void displayLoyaltyInfo() {
         System.out.println("\nLoyalty Program Benefits:");
-        System.out.println((int)(loyaltyDiscount * 100) + "% discount on all orders");
+        System.out.println("   - " + (int)(loyaltyDiscount * 100) + "% discount on all orders");
     }
 }
