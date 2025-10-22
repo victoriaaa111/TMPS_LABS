@@ -28,12 +28,14 @@ public class CoffeeBuilder {
 
     public CoffeeBuilder withSize(Size size) {
         this.size = size;
+        System.out.println("Selecting a cup of " + this.size + " size");
         return this;
     }
 
     public CoffeeBuilder withMilkType(MilkType milkType) {
         if (coffee.allowsMilk()) {
             this.milkType = milkType;
+            System.out.println("Pouring " + this.milkType + " milk");
         } else {
             System.out.println("!!! " + coffee.getName() + " cannot have milk. Skipping milk selection.");
         }
@@ -44,6 +46,7 @@ public class CoffeeBuilder {
         CoffeeShopConfig config = CoffeeShopConfig.getInstance();
         if (extras.size() < config.getMaxExtrasPerDrink()) {
             this.extras.add(extra);
+            System.out.println("Adding extra: " + extra);
         }
         return this;
     }
@@ -59,12 +62,14 @@ public class CoffeeBuilder {
         }
 
         this.shots = validShots;
+        System.out.println("Pouring " + shots + " shots of coffee");
         return this;
     }
 
     public CoffeeBuilder makeIced() {
         if (coffee.canBeIced()) {
             this.iced = true;
+            System.out.println("Adding ice");
         } else {
             System.out.println("!!! " + coffee.getName() + " cannot be served iced. Keeping it hot.");
         }

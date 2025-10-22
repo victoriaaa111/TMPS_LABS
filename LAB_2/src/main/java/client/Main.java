@@ -44,7 +44,7 @@ public class Main {
 
     private static void displayWelcome() {
         System.out.println("\n" + "=".repeat(60));
-        System.out.println("       ☕ Welcome to " + config.getShopName() + "! ☕");
+        System.out.println("        Welcome to " + config.getShopName() + "! ");
         System.out.println("=".repeat(60));
         System.out.println("Tax Rate: " + (config.getTaxRate() * 100) + "%");
     }
@@ -72,18 +72,18 @@ public class Main {
         final int MAX_ATTEMPTS = 3;
 
         while (attempts < MAX_ATTEMPTS) {
-            System.out.print("Please enter your phone number (10 digits): ");
+            System.out.print("Please enter your phone number (9 digits): ");
             String phoneNumber = scanner.nextLine().trim();
 
             if (config.isMember(phoneNumber)) {
-                System.out.println("✓ Membership verified! Welcome back!");
+                System.out.println(" Membership verified! Welcome back!");
                 config.displayLoyaltyInfo();
                 hasLoyaltyDiscount = true;
                 return;
             } else {
                 attempts++;
                 if (attempts < MAX_ATTEMPTS) {
-                    System.out.println("✗ Number not found. You have " +
+                    System.out.println("!! Number not found. You have " +
                             (MAX_ATTEMPTS - attempts) + " attempt(s) remaining.");
                     System.out.print("Would you like to try again? (yes/no): ");
                     String retry = scanner.nextLine().trim().toLowerCase();
@@ -95,7 +95,7 @@ public class Main {
         }
 
         if (attempts == MAX_ATTEMPTS) {
-            System.out.println("✗ Maximum attempts reached.");
+            System.out.println("! Maximum attempts reached.");
         }
         System.out.println("Continuing without loyalty discount...");
     }
@@ -106,10 +106,10 @@ public class Main {
         String response = scanner.nextLine().trim().toLowerCase();
 
         if (response.equals("yes") || response.equals("y")) {
-            System.out.print("Great! Please enter your phone number (10 digits): ");
+            System.out.print("Great! Please enter your phone number (9 digits): ");
             String phoneNumber = scanner.nextLine().trim();
 
-            if (phoneNumber.matches("\\d{10}")) {
+            if (phoneNumber.matches("\\d{9}")) {
                 config.addMember(phoneNumber);
                 hasLoyaltyDiscount = true;
                 System.out.println("Your discount is now active for this order!");
@@ -367,13 +367,13 @@ public class Main {
             subtotal = discountedSubtotal;
         }
 
-        double tax = subtotal * config.getTaxRate();
-        double total = subtotal + tax;
+        double [] result = config.calculateFinalPrice(subtotal);
 
         System.out.println("Tax (" + (config.getTaxRate() * 100) + "%):         $" +
-                String.format("%.2f", tax));
+        String.format("%.2f", result[0]));
         System.out.println("=".repeat(60));
-        System.out.println("TOTAL:              $" + String.format("%.2f", total));
+        System.out.println("TOTAL:              $" + String.format("%.2f", result[1]));
         System.out.println("=".repeat(60));
     }
+
 }

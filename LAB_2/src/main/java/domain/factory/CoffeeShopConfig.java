@@ -27,13 +27,16 @@ public class CoffeeShopConfig {
         loyaltyMembers.add("068738282");
     }
 
-    // Thread-safe singleton instance retrieval
-    public static synchronized CoffeeShopConfig getInstance() {
+
+    public static CoffeeShopConfig getInstance() {
         if (instance == null) {
-            instance = new CoffeeShopConfig();
+            synchronized (CoffeeShopConfig.class) {
+                if (instance == null) instance = new CoffeeShopConfig();
+            }
         }
         return instance;
     }
+
 
     public String getShopName() { return shopName; }
     public double getTaxRate() { return taxRate; }
@@ -58,9 +61,11 @@ public class CoffeeShopConfig {
         return price * (1 - loyaltyDiscount);
     }
 
-    public double calculateFinalPrice(double basePrice, boolean hasLoyalty) {
-        double price = hasLoyalty ? applyLoyaltyDiscount(basePrice) : basePrice;
-        return price * (1 + taxRate);
+    public double[] calculateFinalPrice(double price) {
+        double tax = price * this.taxRate;
+        double finalPrice = price + tax;
+        double [] result = {tax, finalPrice};
+        return result;
     }
 
     public void displayLoyaltyInfo() {
