@@ -1,11 +1,12 @@
-package domain.factory;
+package domain.builder;
 
+import domain.factory.CoffeeShopConfig;
 import domain.models.Coffee;
 import domain.models.enums.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CoffeeBuilder {
+public class CoffeeBuilder implements Builder{
     private Coffee coffee;
     private Size size;
     private MilkType milkType;
@@ -22,7 +23,7 @@ public class CoffeeBuilder {
 
         // Set default milk for drinks that require it
         if (coffee.requiresMilk()) {
-            this.milkType = MilkType.WHOLE; // Default milk type
+            this.milkType = MilkType.WHOLE;
         }
     }
 
@@ -76,6 +77,7 @@ public class CoffeeBuilder {
         return this;
     }
 
+    @Override
     public Coffee build() {
         coffee.setSize(size);
 
