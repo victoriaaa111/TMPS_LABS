@@ -48,90 +48,87 @@ public static CoffeeShopConfig getInstance() {
 ```
 
 ### Factory Method
-The **Factory Method** pattern is realized through the abstract class `CoffeeFactory`, which defines the `createCoffee()` method that each concrete subclass (like `AmericanoFactory`, `EspressoFactory`) overrides to instantiate its respective coffee type.
-In the main application, this abstraction lets the user choose a drink type dynamically without directly calling `new Americano()` or `new Latte()`, keeping the client code decoupled from the concrete classes.
+The **Factory Method** pattern is implemented through the abstract class `CoffeeFactory`, which defines two factory methods: `createCoffee()` for instantiating coffee objects and `getDefaultBuilder()` for providing pre-configured builders. Each concrete factory subclass (such as `AmericanoFactory`, `EspressoFactory`, `LatteFactory`, `CappuccinoFactory`) overrides these methods to return their specific coffee type and corresponding default builder.This abstraction allows the client code to dynamically select coffee types and building strategies without directly instantiating concrete classes like new Americano() or new Latte(). 
 
 ```java
-// Abstract creator
 public abstract class CoffeeFactory {
     public abstract Coffee createCoffee();
-}
+    public abstract Builder getDefaultBuilder();
 
-// Concrete factory
-public class AmericanoFactory extends CoffeeFactory {
-    @Override
-    public Coffee createCoffee() {
-        return new Americano();
+    public Coffee orderCoffee() {
+        Coffee coffee = createCoffee();
+        System.out.println("Preparing: " + coffee.getName());
+        return coffee;
     }
 }
-
-// In Main.java
-CoffeeFactory factory = selectCoffeeType();
-Coffee baseCoffee = factory.createCoffee();
-
 ```
 
-By delegating object creation to factory subclasses, your code becomes easier to extend, new coffee types can be added by simply creating new factory classes without changing the existing logic.
-
-### Builder
-The **Builder** pattern is implemented in the `CoffeeBuilder` class to handle the complex step-by-step construction of a customized coffee order.
-It allows chaining configuration methods (`withSize()`, `withMilkType()`, `addExtra()`, `makeIced()`) before calling `build()` to assemble the final `Coffee` object with the selected options.
 ```java
-// Use Builder Pattern to customize
-CoffeeBuilder builder = new CoffeeBuilder(baseCoffee);
-
-// Customize size
-Size size = selectSize();
-        builder.withSize(size);
-
-// Customize milk type (only if allowed)
-        if (baseCoffee.allowsMilk()) {
-MilkType milkType = selectMilkType(baseCoffee.requiresMilk());
-            if (milkType != null) {
-        builder.withMilkType(milkType);
-            }
-                    } else {
-                    System.out.println("\n " + baseCoffee.getName() + " does not include milk.");
-        }
-
-        // Select if iced (only if allowed)
-        if (baseCoffee.canBeIced()) {
-        System.out.print("\nWould you like it iced? (yes/no): ");
-String icedResponse = scanner.nextLine().trim().toLowerCase();
-            if (icedResponse.equals("yes") || icedResponse.equals("y")) {
-        builder.makeIced();
-            }
-                    } else {
-                    System.out.println("\n " + baseCoffee.getName() + " is served hot only.");
-        }
-
-// Select number of shots (within allowed range)
-int shots = selectShots(baseCoffee);
-        builder.withShots(shots);
-
-// Add extras
-addExtras(builder);
-
-        return builder.build();
+public class EspressoFactory extends CoffeeFactory {
+    @Override
+    public Coffee createCoffee() {
+        return new Espresso();
+    }
+    @Override
+    public Builder getDefaultBuilder() {
+        return new DefaultEspressoBuilder();
+    }
+}
 ```
-This approach separates the logic of how a coffee is built from how it is represented, keeping the code in `Main` clean and letting users mix options flexibly while validating combinations like milk requirements or shot limits.
+### Builder
+The `Builder` pattern is implemented through a builder interface and two distinct builder strategies: default builders and a customizable builder. This design allows users to either quickly select pre-configured coffee options or customize their drink step-by-step.The CoffeeBuilderInterface defines the contract that all builders must follow, ensuring consistency across different builder implementations. Each coffee type has a corresponding DefaultBuilder (e.g., `DefaultLatteBuilder`, `DefaultEspressoBuilder`) that provides a sensible, ready-to-use configuration matching traditional coffee shop standards. 
+```java
+package domain.builder;
+
+import domain.models.Coffee;
+
+public interface Builder{
+    Coffee build();
+}
+```
+For users who want personalization, the `CoffeeBuilder` class offers chainable methods (`withSize()`, `withMilkType()`, `addExtra()`, `makeIced()`, `withShots()`) that allow flexible configuration while automatically validating constraints such as milk requirements, shot limits, and temperature options based on the coffee type.This approach separates the construction logic from the product representation, keeping client code clean and providing both convenience (default configurations) and flexibility (full customization). The pattern validates all configurations before building, ensuring only valid coffee objects are created.
+```java
+ @Override
+    public Coffee build() {
+        coffee.setSize(size);
+
+        // Ensure milk requirement is met
+        if (coffee.requiresMilk() && milkType == null) {
+            System.out.println("!!! " + coffee.getName() + " requires milk. Using default Whole Milk.");
+            milkType = MilkType.WHOLE;
+        }
+
+        coffee.setMilkType(milkType);
+        coffee.setExtras(extras);
+        coffee.setShots(shots);
+        coffee.setIced(iced);
+
+        if (!coffee.isValidConfiguration()) {
+            throw new IllegalStateException("Invalid coffee configuration");
+        }
+
+        coffee.calculatePrice();
+        return coffee;
+    }
+```
 ## Results
-In the first image we are shown a welcome message, the tax rate and we are asked if we are a member of the loyalty program. If no, we are asked if we want to join. I answered yes, so I was asked for my number and then got a success message. The coffee menu was then displayed and I was asked to select a coffee. I selected a Latte and its characteristics appeared. 
+In the first image we are shown a welcome message, the tax rate and we are asked if we are a member of the loyalty program. If no, we are asked if we want to join. I answered yes, so I was asked for my number and then got a success message. The coffee menu was then displayed and I was asked to select a coffee. I selected an Espresso and selected that I want its default version. 
 
-![img.png](img.png)
+![img.png](img.png) 
 
-The program then asks to select a size for the cup, milk type, whether I want it iced or hot, nr. of espresso shots and whether I want any extras. We are then displayed a base price and price with loyalty discount.
+The program then asks me if I want to add another drink and I choose to ass a customizable Latte.
 
 ![img_1.png](img_1.png)
-
-I can also add more drinks if I wish and I added an americano.
-
 ![img_2.png](img_2.png)
+
+I then get a summary of this drink with its base price and price after loyalty program.
+
 ![img_3.png](img_3.png)
 
 Finally, I got the receipt:
 
 ![img_4.png](img_4.png)
+
 ## Conclusions
 In conclusion, this project demonstrates how combining Singleton, Factory Method, and Builder patterns results in a flexible, organized, and maintainable system for object creation.
 Each pattern serves a distinct purpose: the Singleton ensures consistent global configuration, the Factory Method manages polymorphic object creation, and the Builder enables clean, step-by-step customization, working together to produce scalable, reusable, and easily extendable code.
