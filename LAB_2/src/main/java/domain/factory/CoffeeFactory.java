@@ -11,10 +11,4 @@ public abstract class CoffeeFactory {
     // Factory Method for default builder, subclasses will override this
     public abstract Builder getDefaultBuilder();
 
-    // Template method that uses the factory method
-    public Coffee orderCoffee() {
-        Coffee coffee = createCoffee();
-        System.out.println("Preparing: " + coffee.getName());
-        return coffee;
-    }
 }
