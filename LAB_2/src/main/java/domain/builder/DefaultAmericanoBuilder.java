@@ -21,7 +21,7 @@ public class DefaultAmericanoBuilder implements Builder {
 
         americano.calculatePrice();
 
-        System.out.println(" Default Americano: Medium, Hot, 2 shots, no extras");
+        System.out.println(" Default Americano: Small, Hot, 2 shots, no extras");
         return americano;
     }
 }
