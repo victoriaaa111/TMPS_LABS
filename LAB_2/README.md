@@ -48,23 +48,17 @@ public static CoffeeShopConfig getInstance() {
 ```
 
 ### Factory Method
-The **Factory Method** pattern is implemented through the abstract class `CoffeeFactory`, which defines two factory methods: `createCoffee()` for instantiating coffee objects and `getDefaultBuilder()` for providing pre-configured builders. Each concrete factory subclass (such as `AmericanoFactory`, `EspressoFactory`, `LatteFactory`, `CappuccinoFactory`) overrides these methods to return their specific coffee type and corresponding default builder.This abstraction allows the client code to dynamically select coffee types and building strategies without directly instantiating concrete classes like new Americano() or new Latte(). 
+The **Factory Method** pattern is implemented through the interface `CoffeeFactory`, which defines two factory methods: `createCoffee()` for instantiating coffee objects and `getDefaultBuilder()` for providing pre-configured builders. Each class that implements the interface (such as `AmericanoFactory`, `EspressoFactory`, `LatteFactory`, `CappuccinoFactory`) overrides these methods to return their specific coffee type and corresponding default builder.This abstraction allows the client code to dynamically select coffee types and building strategies without directly instantiating concrete classes like new Americano() or new Latte(). 
 
 ```java
-public abstract class CoffeeFactory {
-    public abstract Coffee createCoffee();
-    public abstract Builder getDefaultBuilder();
-
-    public Coffee orderCoffee() {
-        Coffee coffee = createCoffee();
-        System.out.println("Preparing: " + coffee.getName());
-        return coffee;
-    }
+public interface CoffeeFactory {
+    Coffee createCoffee();
+    Builder getDefaultBuilder();
 }
 ```
 
 ```java
-public class EspressoFactory extends CoffeeFactory {
+public class EspressoFactory implements CoffeeFactory {
     @Override
     public Coffee createCoffee() {
         return new Espresso();

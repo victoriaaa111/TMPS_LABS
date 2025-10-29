@@ -5,7 +5,7 @@ import domain.builder.DefaultCappuccinoBuilder;
 import domain.models.Coffee;
 import domain.models.Cappuccino;
 
-public class CappuccinoFactory extends CoffeeFactory {
+public class CappuccinoFactory implements CoffeeFactory {
 
     @Override
     public Coffee createCoffee() {

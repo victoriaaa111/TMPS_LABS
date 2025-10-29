@@ -5,7 +5,7 @@ import domain.builder.DefaultAmericanoBuilder;
 import domain.models.Americano;
 import domain.models.Coffee;
 
-public class AmericanoFactory extends CoffeeFactory {
+public class AmericanoFactory implements CoffeeFactory {
     @Override
     public Coffee createCoffee() {
         return new Americano();
