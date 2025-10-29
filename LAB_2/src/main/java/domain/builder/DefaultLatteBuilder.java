@@ -22,7 +22,7 @@ public class DefaultLatteBuilder implements Builder {
 
         latte.calculatePrice();
 
-        System.out.println(" Default Latte: Medium, Hot, Whole Milk, 1 shot, no extras");
+        System.out.println(" Default Latte: Small, Hot, Whole Milk, 1 shot, no extras");
         return latte;
     }
 }
