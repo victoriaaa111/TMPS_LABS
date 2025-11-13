@@ -85,6 +85,7 @@ public abstract class Coffee {
     }
 
     // Getters
+
     public String getName() { return name; }
     public double getFinalPrice() { return finalPrice; }
     public boolean requiresMilk() { return requiresMilk; }
