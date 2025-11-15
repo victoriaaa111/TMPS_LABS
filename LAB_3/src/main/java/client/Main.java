@@ -14,7 +14,6 @@ public class Main {
         UserInterface ui = new UserInterface(scanner);
 
         ui.displayWelcome();
-        boolean hasLoyaltyDiscount = ui.handleLoyaltyProgram();
 
         List<Coffee> drinks = new ArrayList<>();
         List<Food> foods = new ArrayList<>();
@@ -33,12 +32,12 @@ public class Main {
                     Coffee drink = ui.createCustomCoffee();
                     if (drink != null) {
                         drinks.add(drink);
-                        ui.displayDrinkSummary(drink, hasLoyaltyDiscount);
+                        ui.displayDrinkSummary(drink);
                     }
                     break;
                 }
                 case "2": {
-                    Food food = ui.createFoodItem();
+                    Food food = ui.createFoodOrder();
                     if (food != null) {
                         foods.add(food);
                         ui.displayFoodSummary(food);
@@ -53,11 +52,7 @@ public class Main {
             }
         }
 
-        if (!drinks.isEmpty() || !foods.isEmpty()) {
-            ui.displayFinalReceipt(drinks, foods, hasLoyaltyDiscount);
-        } else {
-            System.out.println("\nNo items in order.");
-        }
+        ui.displayReceipt(drinks, foods);
 
         ui.displayGoodbye();
         scanner.close();

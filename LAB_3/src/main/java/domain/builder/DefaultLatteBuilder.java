@@ -16,7 +16,7 @@ public class DefaultLatteBuilder implements Builder {
         // Default configuration for Latte
         latte.setSize(Size.SMALL);          // Medium is popular
         latte.setMilkType(MilkType.WHOLE);   // Whole milk (required)
-        latte.setShots(1);                   // Single shot
+        latte.setShots(latte.getDefaultShots());                   // Single shot
         latte.setIced(false);                // Hot by default
         latte.setExtras(new ArrayList<>()); // no extras
 

@@ -13,4 +13,9 @@ public class HouseMadeSource implements FoodSource {
         // slightly more expensive due to quality
         return basePrice + 0.50;
     }
+
+    @Override
+    public double getPriceModifier() {
+        return 0.50;
+    }
 }

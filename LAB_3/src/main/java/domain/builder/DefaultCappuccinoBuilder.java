@@ -15,7 +15,7 @@ public class DefaultCappuccinoBuilder implements Builder {
         // Default configuration for Cappuccino
         cappuccino.setSize(Size.SMALL);          // Small is traditional
         cappuccino.setMilkType(MilkType.WHOLE);  // Whole milk (required)
-        cappuccino.setShots(1);                  // Single shot
+        cappuccino.setShots(cappuccino.getDefaultShots());                  // Single shot
         cappuccino.setIced(false);               // Hot by default
         cappuccino.setExtras(new ArrayList<>());
 

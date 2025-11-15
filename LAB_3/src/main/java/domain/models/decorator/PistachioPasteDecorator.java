@@ -18,4 +18,9 @@ public class PistachioPasteDecorator extends FoodDecorator {
     public double getFinalPrice() {
         return base.getFinalPrice() + PISTACHIO_PRICE;
     }
+
+    @Override
+    public double getBasePrice() {
+        return PISTACHIO_PRICE;
+    }
 }

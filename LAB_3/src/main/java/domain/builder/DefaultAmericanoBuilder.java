@@ -15,7 +15,7 @@ public class DefaultAmericanoBuilder implements Builder {
         // Default configuration for Americano
         americano.setSize(Size.SMALL);      // Small is standard
         americano.setMilkType(null);         // No milk
-        americano.setShots(2);               // Double shot (default)
+        americano.setShots(americano.getDefaultShots());               // Double shot (default)
         americano.setIced(false);            // Hot by default
         americano.setExtras(new ArrayList<>());
 

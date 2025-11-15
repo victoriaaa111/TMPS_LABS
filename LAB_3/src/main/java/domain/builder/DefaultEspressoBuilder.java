@@ -14,7 +14,7 @@ public class DefaultEspressoBuilder implements Builder{
         // Default configuration for Espresso
         espresso.setSize(Size.SMALL);        // Small is traditional
         espresso.setMilkType(null);          // No milk
-        espresso.setShots(1);                // Single shot
+        espresso.setShots(espresso.getDefaultShots());                // Single shot
         espresso.setIced(false);             // Hot only
         espresso.setExtras(new java.util.ArrayList<>());  // No extras
 

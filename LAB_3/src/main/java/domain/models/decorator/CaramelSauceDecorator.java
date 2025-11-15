@@ -19,4 +19,9 @@ public class CaramelSauceDecorator extends FoodDecorator {
     public double getFinalPrice() {
         return base.getFinalPrice() + CARAMEL_PRICE;
     }
+
+    @Override
+    public double getBasePrice() {
+        return CARAMEL_PRICE;
+    }
 }

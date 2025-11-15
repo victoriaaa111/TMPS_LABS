@@ -11,4 +11,9 @@ public class VendorSource implements FoodSource {
     public double adjustPrice(double basePrice) {
         return basePrice;
     }
+
+    @Override
+    public double getPriceModifier() {
+        return 0.0;
+    }
 }

@@ -26,4 +26,8 @@ public class Muffin implements Food {
     public double getFinalPrice() {
         return source.adjustPrice(BASE_PRICE);
     }
+    @Override
+    public double getBasePrice() {
+        return BASE_PRICE;
+    }
 }
