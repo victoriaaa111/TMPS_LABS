@@ -1,5 +1,5 @@
 package domain.models.food;
-import domain.models.food.source.FoodSource;
+import domain.models.food.bridge.FoodSource;
 
 public class Croissant implements Food {
     private static final double BASE_PRICE = 2.50;

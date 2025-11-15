@@ -10,9 +10,9 @@ import domain.models.enums.Extra;
 import domain.models.food.Food;
 import domain.models.food.Croissant;
 import domain.models.food.Muffin;
-import domain.models.food.source.FoodSource;
-import domain.models.food.source.HouseMadeSource;
-import domain.models.food.source.VendorSource;
+import domain.models.food.bridge.FoodSource;
+import domain.models.food.bridge.HouseMadeSource;
+import domain.models.food.bridge.VendorSource;
 import domain.models.decorator.CaramelSauceDecorator;
 import domain.models.decorator.PistachioPasteDecorator;
 

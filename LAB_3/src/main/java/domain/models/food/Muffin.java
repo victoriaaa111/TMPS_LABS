@@ -1,6 +1,6 @@
 package domain.models.food;
 
-import domain.models.food.source.FoodSource;
+import domain.models.food.bridge.FoodSource;
 
 public class Muffin implements Food {
 

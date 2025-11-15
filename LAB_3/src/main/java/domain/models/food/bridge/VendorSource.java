@@ -1,4 +1,4 @@
-package domain.models.food.source;
+package domain.models.food.bridge;
 
 public class VendorSource implements FoodSource {
 
