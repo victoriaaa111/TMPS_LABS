@@ -494,6 +494,106 @@ public class UserInterface {
         System.out.printf("%-50s $%.2f%n", "TOTAL:", total);
         System.out.println("=".repeat(60));
         System.out.println("\nTotal items: " + (drinks.size() + foods.size()));
+
+        handlePayment(total);
     }
+
+
+    private void handlePayment(double total) {
+        System.out.println("\n" + "=".repeat(60));
+        System.out.println("                 PAYMENT");
+        System.out.println("=".repeat(60));
+        System.out.printf("Amount to pay: $%.2f%n", total);
+
+        boolean paid = false;
+
+        while (!paid) {
+            System.out.println("\nSelect payment method:");
+            System.out.println("1. Cash");
+            System.out.println("2. Card");
+            System.out.println("3. Mobile payment");
+            System.out.print("Your choice (1-3): ");
+
+            String choice = scanner.nextLine().trim();
+            String receipt = null;
+
+            switch (choice) {
+                case "1":
+                    receipt = handleCashPayment(total);
+                    break;
+                case "2":
+                    receipt = handleCardPayment(total);
+                    break;
+                case "3":
+                    receipt = handleMobilePayment(total);
+                    break;
+                default:
+                    System.out.println("Invalid option, please try again.");
+                    continue;
+            }
+
+            if (receipt == null) {
+                System.out.println("\nPayment failed.");
+                if (!askYesNo("Would you like to try a different payment method?")) {
+                    System.out.println("Order was not paid. Te-am scris in cartea de datorii ;))");
+                    return;
+                }
+            } else {
+                System.out.println(receipt);
+                paid = true;
+            }
+        }
+    }
+
+    private String handleCashPayment(double total) {
+        while (true) {
+            System.out.print("\nEnter cash amount given by customer: ");
+            String input = scanner.nextLine().trim();
+            try {
+                double cash = Double.parseDouble(input);
+                // Facade creates and uses CashPaymentStrategy internally
+                return orderFacade.payWithCash(total, cash);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid amount. Please enter a valid number.");
+            }
+        }
+    }
+
+    private String handleCardPayment(double total) {
+        System.out.println("\n--- Card Payment ---");
+
+        System.out.print("Cardholder Name: ");
+        String cardHolder = scanner.nextLine().trim();
+
+        System.out.print("Card Number (numbers only or with spaces): ");
+        String cardNumber = scanner.nextLine().trim();
+
+        System.out.print("CVV (3-4 digits): ");
+        String cvv = scanner.nextLine().trim();
+
+        System.out.print("Expiry Date (MM/YY): ");
+        String expiry = scanner.nextLine().trim();
+
+        // Facade creates CardPaymentStrategy and processes everything
+        return orderFacade.payWithCard(total, cardNumber, cardHolder, cvv, expiry);
+    }
+
+    private String handleMobilePayment(double total) {
+        System.out.println("\n--- Mobile Payment ---");
+
+        System.out.print("Phone number (e.g. +373 6xx xxx xxx): ");
+        String phone = scanner.nextLine().trim();
+
+        System.out.print("Provider (e.g. Apple Pay, Google Pay, Revolut): ");
+        String provider = scanner.nextLine().trim();
+
+        System.out.print("Device ID: ");
+        String deviceId = scanner.nextLine().trim();
+
+        // Facade creates MobilePaymentStrategy and processes everything
+        return orderFacade.payWithMobile(total, phone, provider, deviceId);
+    }
+
+
 
 }

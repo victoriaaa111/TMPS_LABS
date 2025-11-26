@@ -15,6 +15,10 @@ import domain.models.food.bridge.HouseMadeSource;
 import domain.models.food.bridge.VendorSource;
 import domain.models.decorator.CaramelSauceDecorator;
 import domain.models.decorator.PistachioPasteDecorator;
+import domain.strategy.CardPaymentStrategy;
+import domain.strategy.CashPaymentStrategy;
+import domain.strategy.MobilePaymentStrategy;
+import domain.strategy.PaymentStrategy;
 
 import java.util.List;
 
@@ -251,6 +255,47 @@ public class OrderFacade {
         Food tempFood = new Croissant(new VendorSource());
         Food decorated = new PistachioPasteDecorator(tempFood);
         return decorated.getBasePrice();
+    }
+
+    // ============ PAYMENT (STRATEGY) ============
+
+    public String payWithCash(double amount, double cashTendered) {
+        PaymentStrategy strategy = new CashPaymentStrategy(cashTendered);
+
+        if (!strategy.processPayment(amount)) {
+            // strategy already prints error messages
+            return null;
+        }
+        return strategy.getPaymentReceipt(amount);
+    }
+
+    public String payWithCard(double amount,
+                              String cardNumber,
+                              String cardHolderName,
+                              String cvv,
+                              String expiryDate) {
+
+        PaymentStrategy strategy =
+                new CardPaymentStrategy(cardNumber, cardHolderName, cvv, expiryDate);
+
+        if (!strategy.processPayment(amount)) {
+            return null;
+        }
+        return strategy.getPaymentReceipt(amount);
+    }
+
+    public String payWithMobile(double amount,
+                                String phoneNumber,
+                                String provider,
+                                String deviceId) {
+
+        PaymentStrategy strategy =
+                new MobilePaymentStrategy(phoneNumber, provider, deviceId);
+
+        if (!strategy.processPayment(amount)) {
+            return null;
+        }
+        return strategy.getPaymentReceipt(amount);
     }
 
 }
