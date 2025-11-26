@@ -41,19 +41,6 @@ public class InventoryManager {
         }
     }
 
-    public void displayInventory() {
-        System.out.println("\n" + "=".repeat(50));
-        System.out.println("           CURRENT INVENTORY");
-        System.out.println("=".repeat(50));
-
-        for (InventoryItem item : inventory.values()) {
-            String status = item.isLowStock() ? " LOW" : "✓";
-            System.out.printf("%-20s: %3d units %s%n",
-                    item.getItemName(), item.getQuantity(), status);
-        }
-
-        System.out.println("=".repeat(50));
-    }
 
     public InventoryItem getItem(String itemName) {
         return inventory.get(itemName);

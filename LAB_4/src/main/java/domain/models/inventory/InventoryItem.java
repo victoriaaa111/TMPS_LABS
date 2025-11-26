@@ -27,11 +27,6 @@ public class InventoryItem {
         }
     }
 
-    public void addStock(int amount) {
-        quantity += amount;
-        System.out.println(" " + itemName + ": +" + amount + " added (Total: " + quantity + ")");
-    }
-
     public String getItemName() {
         return itemName;
     }
@@ -40,7 +35,4 @@ public class InventoryItem {
         return quantity;
     }
 
-    public boolean isLowStock() {
-        return quantity <= lowStockThreshold;
-    }
 }

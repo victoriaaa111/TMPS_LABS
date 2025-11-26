@@ -32,6 +32,7 @@ public class Main {
                     Coffee drink = ui.createCustomCoffee();
                     if (drink != null) {
                         drinks.add(drink);
+                        ui.addDrinkToOrder(drink);
                         ui.displayDrinkSummary(drink);
                     }
                     break;
@@ -40,6 +41,7 @@ public class Main {
                     Food food = ui.createFoodOrder();
                     if (food != null) {
                         foods.add(food);
+                        ui.addFoodToOrder(food);
                         ui.displayFoodSummary(food);
                     }
                     break;
@@ -52,7 +54,7 @@ public class Main {
             }
         }
 
-        ui.displayReceipt(drinks, foods);
+        ui.proceedToCheckout();
 
         ui.displayGoodbye();
         scanner.close();

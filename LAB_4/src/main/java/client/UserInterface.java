@@ -434,70 +434,56 @@ public class UserInterface {
         return response.equals("yes") || response.equals("y");
     }
 
-    public void displayReceipt(List<Coffee> drinks, List<Food> foods) {
-        if (drinks.isEmpty() && foods.isEmpty()) {
-            System.out.println("\nNo items ordered.");
+    public void addDrinkToOrder(Coffee coffee) {
+        orderFacade.addDrinkToOrder(coffee);
+    }
+
+
+    public void addFoodToOrder(Food food) {
+        orderFacade.addFoodToOrder(food);
+    }
+
+
+
+    public void proceedToCheckout() {
+        if (orderFacade.isOrderEmpty()) {
+            System.out.println("\n Your order is empty. Please add items first.");
             return;
         }
 
-        System.out.println("\n" + "=".repeat(60));
-        System.out.println("                    RECEIPT");
-        System.out.println("                " + orderFacade.getShopName());
-        System.out.println("=".repeat(60));
+        // Display current order
+        orderFacade.displayCurrentOrder();
 
-        double subtotal = 0.0;
-
-        // Print coffee items
-        if (!drinks.isEmpty()) {
-            System.out.println("\nCOFFEE DRINKS:");
-            System.out.println("-".repeat(60));
-            for (int i = 0; i < drinks.size(); i++) {
-                Coffee drink = drinks.get(i);
-                double price = drink.getFinalPrice();
-                subtotal += price;
-                System.out.printf("%d. %-45s $%.2f%n", (i + 1), drink.getDescription(), price);
-            }
-        }
-
-        // Print food items
-        if (!foods.isEmpty()) {
-            System.out.println("\nFOOD ITEMS:");
-            System.out.println("-".repeat(60));
-            for (int i = 0; i < foods.size(); i++) {
-                Food food = foods.get(i);
-                double price = food.getFinalPrice();
-                subtotal += price;
-                System.out.printf("%d. %-45s $%.2f%n", (i + 1), food.getDescription(), price);
-            }
-        }
-
-        // Calculate totals
-        System.out.println("\n" + "=".repeat(60));
-        System.out.printf("%-50s $%.2f%n", "Subtotal:", subtotal);
-
+        // Calculate total with loyalty discount
+        double subtotal = orderFacade.getCurrentOrderTotal();
         double finalSubtotal = subtotal;
-        double discount;
 
         if (isLoyaltyMember) {
-            discount = subtotal - orderFacade.applyLoyaltyDiscount(subtotal);
-            finalSubtotal = orderFacade.applyLoyaltyDiscount(subtotal);
-            System.out.printf("%-50s -$%.2f%n", "Loyalty Discount (" + (int)(orderFacade.getLoyaltyDiscount() * 100) + "%):", discount);
-            System.out.printf("%-50s $%.2f%n", "Discounted Subtotal:", finalSubtotal);
+            double discountedAmount = orderFacade.applyLoyaltyDiscount(subtotal);
+            double discount = subtotal - discountedAmount;
+            finalSubtotal = discountedAmount;
+
+            System.out.println("\n Loyalty Discount Applied:");
+            System.out.printf("   Subtotal: $%.2f%n", subtotal);
+            System.out.printf("   Discount (%.0f%%): -$%.2f%n",
+                    orderFacade.getLoyaltyDiscount() * 100, discount);
+            System.out.printf("   Discounted Subtotal: $%.2f%n", finalSubtotal);
         }
 
         double[] priceBreakdown = orderFacade.calculateFinalPrice(finalSubtotal);
         double tax = priceBreakdown[0];
         double total = priceBreakdown[1];
 
-        System.out.printf("%-50s $%.2f%n", "Tax (" + (int)(orderFacade.getTaxRate() * 100) + "%):", tax);
-        System.out.println("=".repeat(60));
-        System.out.printf("%-50s $%.2f%n", "TOTAL:", total);
-        System.out.println("=".repeat(60));
-        System.out.println("\nTotal items: " + (drinks.size() + foods.size()));
+        System.out.printf("\n Tax (%.0f%%): $%.2f%n", orderFacade.getTaxRate() * 100, tax);
+        System.out.printf(" TOTAL TO PAY: $%.2f%n", total);
 
+        if (!orderFacade.validateOrder()) {
+            System.out.println("\n Order validation failed! Cannot proceed to payment.");
+            return;
+        }
+        // Proceed to payment
         handlePayment(total);
     }
-
 
     private void handlePayment(double total) {
         System.out.println("\n" + "=".repeat(60));
@@ -533,14 +519,15 @@ public class UserInterface {
             }
 
             if (receipt == null) {
-                System.out.println("\nPayment failed.");
+                System.out.println("\n Payment failed or validation error.");
                 if (!askYesNo("Would you like to try a different payment method?")) {
-                    System.out.println("Order was not paid. Te-am scris in cartea de datorii ;))");
+                    System.out.println("Order cancelled. Items returned to inventory.");
+                    orderFacade.clearCurrentOrder();
                     return;
                 }
             } else {
-                System.out.println(receipt);
                 paid = true;
+                System.out.println("\n Payment successful! Order confirmed.");
             }
         }
     }
@@ -581,7 +568,7 @@ public class UserInterface {
     private String handleMobilePayment(double total) {
         System.out.println("\n--- Mobile Payment ---");
 
-        System.out.print("Phone number (e.g. +373 6xx xxx xxx): ");
+        System.out.print("Phone number (e.g. 063 333 333): ");
         String phone = scanner.nextLine().trim();
 
         System.out.print("Provider (e.g. Apple Pay, Google Pay, Revolut): ");

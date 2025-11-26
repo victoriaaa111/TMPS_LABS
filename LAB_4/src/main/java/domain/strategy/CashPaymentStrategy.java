@@ -10,7 +10,7 @@ public class CashPaymentStrategy implements PaymentStrategy {
     private final double cashTendered;
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final double[] DENOMINATIONS = {20.0, 10.0, 5.0, 1.0, 0.25, 0.10, 0.05, 0.01};
-    private static final String[] DENOMINATION_NAMES = {"$20", "$10", "$5", "$1", "Quarter", "Dime", "Nickel", "Penny"};
+    private static final String[] DENOMINATION_NAMES = {"$20", "$10", "$5", "$1", "$0.25", "$0.10", "$0.05", "$0.01"};
 
     public CashPaymentStrategy(double cashTendered) {
         this.cashTendered = cashTendered;

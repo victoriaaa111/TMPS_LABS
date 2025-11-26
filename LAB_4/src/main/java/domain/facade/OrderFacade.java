@@ -2,6 +2,7 @@ package domain.facade;
 
 import domain.builder.Builder;
 import domain.builder.CoffeeBuilder;
+import domain.chainOfResponsability.*;
 import domain.factory.*;
 import domain.models.Coffee;
 import domain.models.enums.Size;
@@ -15,19 +16,101 @@ import domain.models.food.bridge.HouseMadeSource;
 import domain.models.food.bridge.VendorSource;
 import domain.models.decorator.CaramelSauceDecorator;
 import domain.models.decorator.PistachioPasteDecorator;
+import domain.observer.publisher.OrderSubject;
+import domain.observer.subscribers.CustomerNotificationObserver;
+import domain.observer.subscribers.InventoryObserver;
+import domain.observer.subscribers.KitchenDisplayObserver;
 import domain.strategy.CardPaymentStrategy;
 import domain.strategy.CashPaymentStrategy;
 import domain.strategy.MobilePaymentStrategy;
 import domain.strategy.PaymentStrategy;
-
+import domain.models.Order;
 import java.util.List;
 
 public class OrderFacade {
     private final CoffeeShopConfig config;
 
+    // Current order being built
+    private Order currentOrder;
+
+    // Observer Pattern
+    private OrderSubject orderSubject;
+
+    // Chain of Responsibility
+    private OrderValidationHandler validationChain;
     public OrderFacade() {
         this.config = CoffeeShopConfig.getInstance();
+        initializeNewOrder();
+        setupValidationChain();
     }
+
+    private void initializeNewOrder() {
+        String orderId = generateOrderId();
+        this.currentOrder = new Order(orderId);
+        this.orderSubject = new OrderSubject();
+        setupObservers();
+    }
+
+    private void setupObservers() {
+        orderSubject.attach(new KitchenDisplayObserver("Main"));
+        orderSubject.attach(new CustomerNotificationObserver());
+        orderSubject.attach(new InventoryObserver(orderSubject));
+    }
+
+    private void setupValidationChain() {
+        // Create handlers
+        OrderValidationHandler emptyOrderHandler = new EmptyOrderHandler();
+        OrderValidationHandler workingHoursHandler = new WorkingHoursHandler();
+        OrderValidationHandler stockHandler = new StockAvailabilityHandler();
+        OrderValidationHandler minimumOrderHandler = new MinimumOrderHandler();
+
+        // Chain them together
+        emptyOrderHandler.setNext(workingHoursHandler);
+        workingHoursHandler.setNext(stockHandler);
+        stockHandler.setNext(minimumOrderHandler);
+
+        // Set the first handler as the chain entry point
+        validationChain = emptyOrderHandler;
+    }
+
+    private String generateOrderId() {
+        return "ORD-" + System.currentTimeMillis();
+    }
+
+    // ============ ORDER MANAGEMENT ============
+
+    public void addDrinkToOrder(Coffee coffee) {
+        currentOrder.addDrink(coffee);
+        System.out.println("" +
+                " Added to order: " + coffee.getDescription());
+    }
+
+    public void addFoodToOrder(Food food) {
+        currentOrder.addFood(food);
+        System.out.println(" Added to order: " + food.getDescription());
+    }
+
+    public void displayCurrentOrder() {
+        currentOrder.displayOrder();
+    }
+
+    public void clearCurrentOrder() {
+        System.out.println("\n  Clearing order...");
+        initializeNewOrder();
+    }
+
+    public boolean isOrderEmpty() {
+        return currentOrder.isEmpty();
+    }
+
+    public double getCurrentOrderTotal() {
+        return currentOrder.getTotal();
+    }
+
+    public String getCurrentOrderId() {
+        return currentOrder.getOrderId();
+    }
+
 
     // ============ COFFEE FACTORY & BUILDER METHODS ============
 
@@ -260,13 +343,9 @@ public class OrderFacade {
     // ============ PAYMENT (STRATEGY) ============
 
     public String payWithCash(double amount, double cashTendered) {
-        PaymentStrategy strategy = new CashPaymentStrategy(cashTendered);
 
-        if (!strategy.processPayment(amount)) {
-            // strategy already prints error messages
-            return null;
-        }
-        return strategy.getPaymentReceipt(amount);
+        return processPayment(amount, new CashPaymentStrategy(cashTendered));
+
     }
 
     public String payWithCard(double amount,
@@ -275,27 +354,87 @@ public class OrderFacade {
                               String cvv,
                               String expiryDate) {
 
-        PaymentStrategy strategy =
-                new CardPaymentStrategy(cardNumber, cardHolderName, cvv, expiryDate);
+        return processPayment(amount,
+                new CardPaymentStrategy(cardNumber, cardHolderName, cvv, expiryDate));
 
-        if (!strategy.processPayment(amount)) {
-            return null;
-        }
-        return strategy.getPaymentReceipt(amount);
     }
 
     public String payWithMobile(double amount,
                                 String phoneNumber,
                                 String provider,
                                 String deviceId) {
+        return processPayment(amount,
+                new MobilePaymentStrategy(phoneNumber, provider, deviceId));
+    }
 
-        PaymentStrategy strategy =
-                new MobilePaymentStrategy(phoneNumber, provider, deviceId);
 
-        if (!strategy.processPayment(amount)) {
+    private String processPayment(double amount, PaymentStrategy paymentStrategy) {
+        System.out.println("\n" + "=".repeat(50));
+        System.out.println("           PROCESSING PAYMENT");
+        System.out.println("=".repeat(50));
+        System.out.println("Order ID: " + currentOrder.getOrderId());
+        System.out.println("Total Amount: $" + String.format("%.2f", amount));
+        System.out.println("Payment Method: " + paymentStrategy.getPaymentMethodName());
+        System.out.println("=".repeat(50));
+
+        // STRATEGY PATTERN
+        if (!paymentStrategy.processPayment(amount)) {
+            System.out.println("\n Payment processing failed!");
             return null;
         }
-        return strategy.getPaymentReceipt(amount);
+
+        String receipt = paymentStrategy.getPaymentReceipt(amount);
+        System.out.println(receipt);
+
+        // OBSERVER PATTERN - notify after successful payment
+        System.out.println("\n" + "=".repeat(50));
+        System.out.println("           NOTIFYING OBSERVERS");
+        System.out.println("=".repeat(50));
+
+        orderSubject.setStatus("CONFIRMED", currentOrder);
+        simulateOrderPreparation();
+
+        System.out.println("\n Thank you for your order!");
+
+        // Clear order after successful payment
+        initializeNewOrder();
+
+        return receipt;
+    }
+
+    // =========== OBSERVER ============
+    private void simulateOrderPreparation() {
+        try {
+            Thread.sleep(1000);
+            orderSubject.setStatus("PREPARING", currentOrder);
+
+            Thread.sleep(2000);
+            orderSubject.setStatus("READY", currentOrder);
+
+            Thread.sleep(1000);
+            orderSubject.setStatus("COMPLETED", currentOrder);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    //=========== CHAIN OF RESPONSABILITY ============
+
+    public boolean validateOrder() {
+        System.out.println("\n" + "=".repeat(50));
+        System.out.println("           ORDER VALIDATION");
+        System.out.println("=".repeat(50));
+
+
+        boolean isValid = validationChain.validate(currentOrder);
+
+        if (!isValid) {
+            System.out.println("\n Validation failed!");
+            return false;
+        }
+
+        System.out.println("\n All validations passed!");
+        return true;
     }
 
 }
