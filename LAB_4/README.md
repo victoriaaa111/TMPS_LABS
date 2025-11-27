@@ -1,5 +1,4 @@
-# Structural Design Patterns
-
+# Behavioral Design Patterns
 
 ## Author: Victoria Mutruc, Group FAF-232
 
@@ -7,120 +6,246 @@
 
 ## Objectives:
 
-1. Study and understand the Structural Design Patterns.
+1. Study and understand the Behavioral Design Patterns.
 2. As a continuation of the previous laboratory work, think about the functionalities that your system will need to provide to the user.
-3. Implement some additional functionalities using structural design patterns.
-
+3. Implement some additional functionalities using 3 behavioral design patterns.
 
 ## Used Design Patterns:
-In software engineering, the Structural Design Patterns are concerned with how classes and objects are composed to form larger structures. Structural class patterns use inheritance to create a hierarchy of classes/abstractions, but the structural object patterns use composition which is generally a more flexible alternative to inheritance.
 
-* **Facade** - Provides a simplified, unified interface to a complex subsystem, making it easier for clients to interact with multiple components without needing to understand their internal complexities.
-* **Bridge** - Separates an abstraction from its implementation so that the two can vary independently, allowing different combinations of abstractions and implementations without creating a rigid class hierarchy.
-* **Decorator** - Dynamically adds responsibilities to objects by wrapping them in decorator objects, enabling flexible extension of functionality without modifying the original class structure.
+Behavioral Design Patterns are concerned with algorithms and the assignment of responsibilities between objects. These patterns characterize complex control flow that's difficult to follow at run-time and shift focus away from the flow of control to let you concentrate on the way objects are interconnected.
 
+* **Chain of Responsibility** - Passes a request along a chain of handlers, where each handler decides either to process the request or pass it to the next handler in the chain, decoupling the sender from the receiver.
+* **Strategy** - Defines a family of algorithms, encapsulates each one, and makes them interchangeable, allowing the algorithm to vary independently from clients that use it.
+* **Observer** - Defines a one-to-many dependency between objects so that when one object changes state, all its dependents are notified and updated automatically.
 
 ## Implementation
 
-This laboratory work extends the previous coffee shop ordering system by adding food items (croissants and muffins) with topping decorators and implementing three structural design patterns: Facade, Bridge, and Decorator. The system now allows customers to order both beverages and food items through an enhanced interactive terminal interface managed by the OrderFacade.
+This laboratory work extends the coffee shop ordering system by implementing order validation, payment processing, and order status notifications using three behavioral design patterns. The system now validates orders before payment, supports multiple payment methods, and notifies relevant parties about order status changes.
 
-### Facade
-The `OrderFacade` class implements the **Facade** pattern by providing a simplified, unified interface to the complex coffee and food ordering subsystem. It hides the complexity of creating coffee objects, food sources, applying decorators, and managing the ordering process from the client code (`UserInterface`).
+### Chain of Responsibility
 
-The client simply calls orderFacade.calculateFinalPrice(price) and receives the result without direct dependency on the configuration subsystem. The facade acts as an intermediary, decoupling the UI from the singleton pattern implementation and tax calculation logic.
+The **Chain of Responsibility** pattern implements a validation pipeline where each handler validates a specific aspect of the order before passing it to the next handler. The chain is established in `OrderFacade` and executed before payment processing.
+
 ```java
-public double[] calculateFinalPrice(double price) {
-    return config.calculateFinalPrice(price);
+private void setupValidationChain() {
+    OrderValidationHandler emptyOrderHandler = new EmptyOrderHandler();
+    OrderValidationHandler workingHoursHandler = new WorkingHoursHandler();
+    OrderValidationHandler stockHandler = new StockAvailabilityHandler();
+    OrderValidationHandler minimumOrderHandler = new MinimumOrderHandler();
+
+    emptyOrderHandler.setNext(workingHoursHandler);
+    workingHoursHandler.setNext(stockHandler);
+    stockHandler.setNext(minimumOrderHandler);
+
+    validationChain = emptyOrderHandler;
 }
 ```
 
-### Bridge
+The validation chain consists of four handlers:
 
-The **Bridge** pattern separates the food item abstraction (`Food` interface implemented by `Croissant` and `Muffin`) from its sourcing implementation (`FoodSource` interface implemented by `HouseMadeSource` and `VendorSource`). This allows food types and sourcing methods to vary independently without creating a rigid class hierarchy.
+1. **EmptyOrderHandler** - Ensures the order contains at least one item
+2. **WorkingHoursHandler** - Checks if the shop is currently open 
+3. **StockAvailabilityHandler** - Verifies all items are available in inventory
+4. **MinimumOrderHandler** - Validates the order meets the minimum amount ($3.00)
 
-```java
-public class Croissant implements Food {
-    private final FoodSource source;
-
-    public Croissant(FoodSource source) {
-        this.source = source;
-    }
-
-    @Override
-    public String getDescription() {
-        return "Croissant (" + source.getSourceName() + ")";
-    }
-
-    @Override
-    public double getFinalPrice() {
-        return getBasePrice() + source.getAdditionalCost();
-    }
-}
-
-```
-
-The bridge connection is established through aggregation, each food item holds a reference to a `FoodSource` object. This design enables flexible combinations: any food item can work with any source (house-made or vendor), and new food types or sources can be added independently without modifying existing code.
-
-### Decorator
-The **Decorator** pattern dynamically adds responsibilities to food objects by wrapping them in decorator objects. The `FoodDecorator` abstract class implements the `Food` interface and maintains a reference to a wrapped `Food` object.
-
-Concrete decorators like CaramelSauceDecorator and PistachioPasteDecorator extend FoodDecorator to add specific toppings, modifying the description and price without changing the base food classes.
+Each handler implements the `OrderValidationHandler` abstract class:
 
 ```java
-public class CaramelSauceDecorator extends FoodDecorator {
-    public static final double CARAMEL_PRICE = 0.80;
+public abstract class OrderValidationHandler {
+    protected OrderValidationHandler nextHandler;
+    private final String handlerName;
 
-    public CaramelSauceDecorator(Food food) {
-        super(food);
+    public void setNext(OrderValidationHandler next) {
+        this.nextHandler = next;
     }
 
-    @Override
-    public String getDescription() {
-        return wrappedFood.getDescription() + " + Caramel Drizzle";
+    public boolean validate(Order order) {
+        if (!doValidation(order)) {
+            return false;
+        }
+        return nextHandler == null || nextHandler.validate(order);
     }
 
-    @Override
-    public double getFinalPrice() {
-        return wrappedFood.getFinalPrice() + CARAMEL_PRICE;
+    protected abstract boolean doValidation(Order order);
+}
+```
+
+If any handler fails, the validation stops immediately and the order is rejected. Only after all validations pass can the payment be processed.
+
+### Strategy
+
+The **Strategy** pattern encapsulates different payment methods (cash, card, mobile) into interchangeable strategy objects. Each payment strategy implements the `PaymentStrategy` interface:
+
+```java
+public interface PaymentStrategy {
+    boolean processPayment(double amount);
+    String getPaymentReceipt(double amount);
+    String getPaymentMethodName();
+}
+```
+
+Three concrete strategies are implemented:
+
+**CashPaymentStrategy** - Validates cash tendered is sufficient and calculates change:
+
+**CardPaymentStrategy** - Validates card details (number, CVV, expiry):
+
+**MobilePaymentStrategy** - Processes mobile payments (Apple Pay, Google Pay, etc.):
+
+
+### Observer
+
+The **Observer** pattern notifies interested parties (observers) when an order's status changes. The `OrderSubject` maintains a list of observers and notifies them of status updates:
+
+```java
+public class OrderSubject {
+    private List<OrderStatusObserver> observers;
+    private String status;
+
+    public void attach(OrderStatusObserver observer) {
+        observers.add(observer);
     }
 
-    @Override
-    public double getBasePrice() {
-        return CARAMEL_PRICE;
+    public void setStatus(String status, Order order) {
+        this.status = status;
+        System.out.println("Order status changed: " + status);
+        notifyObservers(order);
+    }
+
+    private void notifyObservers(Order order) {
+        List<OrderStatusObserver> observersCopy = new ArrayList<>(observers);
+        for (OrderStatusObserver observer : observersCopy) {
+            observer.update(status, order);
+        }
     }
 }
-
 ```
+
+All observers implement the `OrderStatusObserver` interface:
+
+```java
+public interface OrderStatusObserver {
+    void update(String status, Order order);
+}
+```
+
+Three observers are implemented:
+
+**KitchenDisplayObserver** - Displays order information on the kitchen screen:
+
+```java
+public class KitchenDisplayObserver implements OrderStatusObserver {
+    @Override
+    public void update(String status, Order order) {
+        switch (status) {
+            case "CONFIRMED":
+                System.out.println(" NEW ORDER RECEIVED: #" + order.getOrderId());
+                displayOrderDetails(order);
+                break;
+            case "PREPARING":
+                System.out.println(" Preparing order #" + order.getOrderId());
+                break;
+            case "READY":
+                System.out.println(" Order READY for pickup!");
+                break;
+        }
+    }
+}
+```
+
+**CustomerNotificationObserver** - Sends notifications to the customer:
+
+```java
+public class CustomerNotificationObserver implements OrderStatusObserver {
+    @Override
+    public void update(String status, Order order) {
+        switch (status) {
+            case "CONFIRMED":
+                notifyOrderConfirmed(order);
+                break;
+            case "PREPARING":
+                notifyOrderPreparing(order);
+                break;
+            case "READY":
+                notifyOrderReady(order);
+                break;
+            case "COMPLETED":
+                notifyOrderCompleted(order);
+                break;
+        }
+    }
+}
+```
+
+**InventoryObserver** - Updates stock levels and detaches itself after the CONFIRMED status:
+
+```java
+public class InventoryObserver implements OrderStatusObserver {
+    private OrderSubject subject;
+
+    @Override
+    public void update(String status, Order order) {
+        if (status.equals("CONFIRMED")) {
+            System.out.println("-".repeat(50));
+            updateInventory(order);
+            System.out.println("-".repeat(50));
+
+            // Detach after updating inventory - no longer needed
+            subject.detach(this);
+            System.out.println(" InventoryObserver detached (job complete)");
+        }
+    }
+}
+```
+
+### Pattern Integration
+
+The three behavioral patterns work together seamlessly:
+
+1. **User proceeds to checkout** -> `validateOrder()` is called
+2. **Chain of Responsibility validates** the order (empty, hours, stock, minimum)
+3. **If validation passes** -> User selects payment method
+4. **Strategy pattern processes** payment (Cash/Card/Mobile)
+5. **If payment succeeds** -> **Observer pattern notifies** all interested parties
+6. **InventoryObserver** updates stock and detaches itself
+7. **Other observers** continue receiving PREPARING -> READY -> COMPLETED notifications
+
 ## Results
-The application welcomes the user with the shop name and displays the current tax rate (8.0%). The loyalty program is presented, offering a 10% discount on all orders. When the user confirms they want to join, they enter their phone number (123456789), which is successfully registered in the system.
+
+### Order Validation Flow
+
+When a user attempts to checkout, the Chain of Responsibility validates the order:
 
 ![img.png](img.png)
 
-After enrollment, the coffee menu is displayed with four types and their base prices. The user selects *Espresso* and chooses the default configuration. The system shows the Espresso's characteristics (Small, Hot, 1 shot, no extras) and calculates the final price with loyalty discount applied and tax, resulting in 2.43 total.
+### Payment Processing with Strategy
+
+After successful validation, the user selects a payment method. Here we chose the cash method and got change:
 
 ![img_1.png](img_1.png)
 
-The user adds a custom *Latte* to the order. The system displays Latte characteristics (base price 4.25, requires milk, can be hot or iced). The user selects Large size (+ 1.00), Coconut Milk (+ 0.50), makes it iced, and requests 2 shots (1 additional shot for +0.50).
-
 ![img_2.png](img_2.png)
 
-The user adds Whipped Cream (+ 0.50) as an extra. The system provides a detailed summary: "Iced LARGE Latte with Coconut Milk, 2 shots + Whipped Cream" with base price 6.75, loyalty discount - 0.67, discounted price 6.08, tax 0.49, and final price - 6.56.
+### Observer Notifications
+
+After successful payment, the Observer pattern notifies all interested parties:
 
 ![img_3.png](img_3.png)
 
-The user adds a *Croissant*, choosing the House-made source (+ 0.50). When prompted for toppings, they select caramel drizzle (+ 0.80), demonstrating the Decorator pattern. The food item shows as "Croissant (Freshly made in our coffee shop) + caramel drizzle" with base price 3.80, loyalty discount - 0.38, resulting in $3.69 final price with tax.
-
 ![img_4.png](img_4.png)
-
-The user adds a *Muffin*, selecting Vendor source (+ 0.00), demonstrating the **Bridge pattern**'s flexibility to combine different food types with different sources. They decline both topping options. The system displays "Muffin (Sourced from trusted local vendor)" with base price 2.00, loyalty discount - 0.20, and final price 1.94 with tax.
 
 ![img_5.png](img_5.png)
 
-The receipt displays all ordered items organized by category:
- * Coffee Drinks: Hot SMALL Espresso (2.50), Iced LARGE Latte with Coconut Milk, 2 shots + Whipped Cream (6.75)
- * Food Items: Croissant (Freshly made in our coffee shop) + caramel drizzle (3.80), Muffin (Sourced from trusted local vendor) (2.00)
-
-![img_6.png](img_6.png)
+Notice how the InventoryObserver detaches itself after CONFIRMED, so only 2 observers receive the PREPARING, READY, and COMPLETED notifications.
 
 ## Conclusions
-This laboratory work successfully added food ordering capabilities to the coffee shop system by implementing three structural design patterns. The **Facade** pattern simplified complex operations by providing a single `OrderFacade` interface that handles coffee creation, food ordering, pricing, and loyalty calculations, the **Bridge** pattern allowed food items and their sources to change independently, and the **Decorator** pattern enabled flexible topping additions without creating many subclasses. These patterns work together with the previous creational patterns to create a maintainable system that can easily grow with new features.
+
+This laboratory work successfully implemented three behavioral design patterns to enhance the coffee shop ordering system with validation, payment processing, and notification capabilities.
+
+The **Chain of Responsibility** pattern provides a flexible validation pipeline where each handler has a single responsibility and can be easily added, removed, or reordered. This makes the validation logic maintainable and extensible - new validation rules can be added without modifying existing handlers.
+
+The **Strategy** pattern encapsulates different payment methods into interchangeable objects, allowing the system to support multiple payment types without complex conditional logic. New payment methods can be added by simply creating a new strategy class that implements the `PaymentStrategy` interface.
+
+The **Observer** pattern decouples the order processing logic from notification logic, allowing multiple parties to be automatically notified of order status changes. The dynamic detachment capability (demonstrated by `InventoryObserver`) shows sophisticated use of the pattern where observers can remove themselves when no longer needed.
+
+These behavioral patterns work seamlessly with the previously implemented creational (Factory, Builder, Singleton) and structural (Facade, Bridge, Decorator) patterns, creating a robust, maintainable system that follows SOLID principles and is ready for future expansion.
